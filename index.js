@@ -51,8 +51,8 @@ function sendAppointmentEmail(booking) {
         <h3>Your Appointment for ${treatment} is confirmed</h3>
         <p>Looking forward to seeing you on ${date} at ${slot}</p>
         <h3> Our Address</h3>
-        <p> Andor Killa Bandorban</p>
-        <p>Bangladesh</p>
+        <p>Azadi Bazar Surgicare Diagnostic Center</p>
+        <p>Dharmapur, Fatikchhari, Chattogram.</p>
     </div>
     `
   };
