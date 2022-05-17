@@ -34,14 +34,21 @@ async function run() {
     const servicesCollection = client.db('doctors_portal').collection('services')
     const bookingCollection = client.db('doctors_portal').collection('bookings')
     const userCollection = client.db('doctors_portal').collection('users')
+    const doctorCollection = client.db('doctors_portal').collection('doctors')
 
 
+    // =====================================================================>
+    // =====================================================================>
+    
     app.get('/service', async (req, res) => {
       const query = {};
-      const cursor = servicesCollection.find(query);
+      const cursor = servicesCollection.find(query).project({ name: 1 });
       const services = await cursor.toArray();
       res.send(services);
     });
+
+    // =====================================================================>
+    // =====================================================================>
 
     app.get('/available', async (req, res) => {
       const date = req.query.date;
@@ -74,6 +81,9 @@ async function run() {
        * app.delete('/booking/:id') // delete a specific item.
     */
 
+    // =====================================================================>
+    // =====================================================================>
+
     app.get('/booking', verifyJWT, async (req, res) => {
       const patient = req.query.patient;
       const decodedEmail = req.decoded.email;
@@ -88,6 +98,8 @@ async function run() {
 
     })
 
+    // =====================================================================>
+    // =====================================================================>
 
     app.post('/booking', async (req, res) => {
       const booking = req.body;
@@ -100,17 +112,26 @@ async function run() {
       return res.send({ success: true, result });
     })
 
+    // =====================================================================>
+    // =====================================================================>
+
     app.get('/user', verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     })
 
-    app.get('/admin/:email', async(req, res)=>{
+    // =====================================================================>
+    // =====================================================================>
+
+    app.get('/admin/:email', async (req, res) => {
       const email = req.params.email;
-      const user = await userCollection.findOne({email: email});
+      const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === 'admin';
-      res.send({admin: isAdmin})
+      res.send({ admin: isAdmin })
     })
+
+    // =====================================================================>
+    // =====================================================================>
 
     app.put('/user/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
@@ -123,10 +144,13 @@ async function run() {
         };
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result)
-      }else{
-        res.send(403).send({message: 'forbidden'})
+      } else {
+        res.send(403).send({ message: 'forbidden' })
       }
     })
+
+    // =====================================================================>
+    // =====================================================================>
 
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
@@ -140,6 +164,17 @@ async function run() {
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3d' });
       res.send({ result, token })
     })
+
+    // =====================================================================>
+    // =====================================================================>
+
+    app.post('/doctor', verifyJWT, async(req, res)=>{
+      const doctor = req.body;
+      const result = await doctorCollection.insertOne(doctor);
+      res.send(result)
+    })
+
+
 
   }
   finally {
