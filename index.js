@@ -75,6 +75,7 @@ async function run() {
     const bookingCollection = client.db('doctors_portal').collection('bookings')
     const userCollection = client.db('doctors_portal').collection('users')
     const doctorCollection = client.db('doctors_portal').collection('doctors')
+    const paymentCollection = client.db('doctors_portal').collection('payments')
 
     const verifyAdmin = async (req, res, next) => {
       const requester = req.decoded.email;
@@ -92,13 +93,13 @@ async function run() {
     app.post('/create-payment-intent', verifyJWT, async (req, res) => {
       const service = req.body;
       const price = service.price;
-      const amount = price*100;
+      const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount:amount,
+        amount: amount,
         currency: 'usd',
         payment_method_types: ['card']
       });
-      res.send({clientSecret: paymentIntent.client_secret})
+      res.send({ clientSecret: paymentIntent.client_secret })
     })
 
     // =====================================================================>
@@ -187,6 +188,26 @@ async function run() {
       sendAppointmentEmail(booking)
       return res.send({ success: true, result });
     })
+
+    // =====================================================================>
+    // =====================================================================>
+
+    app.patch('/booking/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectID(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true.valueOf,
+          transactionId: payment.transactionId
+        }
+      }
+
+      const result = await paymentCollection.insertOne(payment)
+      const updatedBooking = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(updatedDoc)
+    })
+
 
     // =====================================================================>
     // =====================================================================>
